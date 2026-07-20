@@ -6,9 +6,14 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, Query
 
-from ..db import get_db
-from ..deps import get_current_user
-from ..services.progress_predictor import predict_progress
+try:
+    from ..db import get_db
+    from ..deps import get_current_user
+    from ..services.progress_predictor import predict_progress
+except (ImportError, ValueError):
+    from db import get_db
+    from deps import get_current_user
+    from services.progress_predictor import predict_progress
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 

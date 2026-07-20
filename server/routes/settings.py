@@ -6,8 +6,12 @@ from typing import Any, Dict
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from ..db import get_db
-from ..deps import get_current_user
+try:
+    from ..db import get_db
+    from ..deps import get_current_user
+except (ImportError, ValueError):
+    from db import get_db
+    from deps import get_current_user
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 

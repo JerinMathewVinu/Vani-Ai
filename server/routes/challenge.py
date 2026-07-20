@@ -6,12 +6,20 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 
-from ..db import get_db
-from ..deps import get_current_user
-from ..converters.stt import transcribe_audio_bytes
-from ..analytics import calculate_metrics
-from ..llm import call_local_mistral
-from ..auth import new_id
+try:
+    from ..db import get_db
+    from ..deps import get_current_user
+    from ..converters.stt import transcribe_audio_bytes
+    from ..analytics import calculate_metrics
+    from ..llm import call_local_mistral
+    from ..auth import new_id
+except (ImportError, ValueError):
+    from db import get_db
+    from deps import get_current_user
+    from converters.stt import transcribe_audio_bytes
+    from analytics import calculate_metrics
+    from llm import call_local_mistral
+    from auth import new_id
 
 router = APIRouter(prefix="/api/challenge", tags=["challenge"])
 

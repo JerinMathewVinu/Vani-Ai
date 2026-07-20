@@ -26,8 +26,12 @@ from typing import Optional
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
-from ..auth import decode_token
-from ..services.streaming_stt import StreamState, stream_transcripts
+try:
+    from ..auth import decode_token
+    from ..services.streaming_stt import StreamState, stream_transcripts
+except (ImportError, ValueError):
+    from auth import decode_token
+    from services.streaming_stt import StreamState, stream_transcripts
 
 logger = logging.getLogger(__name__)
 

@@ -9,11 +9,18 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from ..db import get_db
-from ..deps import get_optional_user
-from ..llm import call_local_mistral
-from ..auth import new_id
-from ..services import rag_coaching
+try:
+    from ..db import get_db
+    from ..deps import get_optional_user
+    from ..llm import call_local_mistral
+    from ..auth import new_id
+    from ..services import rag_coaching
+except (ImportError, ValueError):
+    from db import get_db
+    from deps import get_optional_user
+    from llm import call_local_mistral
+    from auth import new_id
+    from services import rag_coaching
 
 router = APIRouter(prefix="/api/partner", tags=["partner"])
 
