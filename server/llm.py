@@ -32,21 +32,17 @@ def _extract_original_text(prompt: str) -> str:
 
 def _offline_improve_text(prompt: str) -> str:
     if "Format the output strictly as a JSON object" in prompt:
-        return '{"feedback": "Good attempt! Work on structuring your response with clearer examples.", "grammar_score": 75, "clarity_score": 70, "confidence_score": 75}'
+        return '{"feedback": "Great effort! Your sentence structure and confidence are strong. Keep practicing to expand your vocabulary.", "grammar_score": 85, "clarity_score": 82, "confidence_score": 88}'
 
-    # Smart dynamic fallback: extract recent user statement
-    user_line = ""
-    lines = [line.strip() for line in prompt.split('\n') if line.strip()]
-    for line in reversed(lines):
-        if line.startswith("User:") or line.startswith("Original:"):
-            user_line = line.split(":", 1)[1].strip()
-            break
-
-    if user_line:
-        # Contextual response simulation
-        return f"That's interesting! Speaking about '{user_line}', could you share more details in English?"
-
-    return "That's a great point! Tell me more about your thoughts on this topic in English."
+    import random
+    responses = [
+        "That's a fantastic thought! How do you usually approach that when speaking with friends or colleagues?",
+        "I really like your perspective on this! What inspired you to share that point of view?",
+        "That makes a lot of sense! Could you describe a specific experience or example that shaped your thoughts on this?",
+        "Great point! If you had to explain this topic to someone new in English, what key message would you emphasize?",
+        "Very interesting point! What do you think is the biggest challenge or benefit when dealing with this?"
+    ]
+    return random.choice(responses)
 
 
 def _parse_llm_response(data):
