@@ -31,13 +31,11 @@ _model = None
 
 
 def get_transcription_model():
-    """Lazy-load the tiny.en Whisper model. The first call downloads ~75 MB."""
+    """Lazy-load the tiny.en Whisper model. Uses int8 + 1 thread to minimize RAM on 512MB hosts."""
     global _model
     if _model is None:
         from faster_whisper import WhisperModel
-        # int8 quantization cuts memory use in half with negligible quality loss.
-        # `cpu` works on every machine; switch to `cuda` if you have a GPU.
-        _model = WhisperModel('tiny.en', device='cpu', compute_type='int8')
+        _model = WhisperModel('tiny.en', device='cpu', compute_type='int8', cpu_threads=1)
     return _model
 
 

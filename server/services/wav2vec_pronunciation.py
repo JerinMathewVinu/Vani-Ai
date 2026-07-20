@@ -183,19 +183,17 @@ def _get_model():
             return _model, _processor
         _load_attempted = True
         try:
-            from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+            # Low-memory guard for 512MB cloud instances (Render Free)
+            import psutil
+            mem = psutil.virtual_memory()
+            if mem.available < 300 * 1024 * 1024:
+                logger.info("wav2vec: system memory low (%d MB free), skipping heavy model to prevent OOM", mem.available // (1024 * 1024))
+                return None, None
+        except Exception:
+            pass
 
-            # If the model is already cached locally, prefer offline mode so
-            # intermittent network failures don't kill the load.
-            try:
-                from huggingface_hub import try_to_load_from_cache
-                cached = try_to_load_from_cache(MODEL_ID, "config.json")
-                if cached is not None and cached != "_not_found_":
-                    os.environ.setdefault("HF_HUB_OFFLINE", "1")
-                    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-            except Exception:
-                pass
-
+        try:
+            from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
             _processor = Wav2Vec2Processor.from_pretrained(MODEL_ID)
             _model = Wav2Vec2ForCTC.from_pretrained(MODEL_ID)
             _model.eval()
