@@ -69,7 +69,9 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error) => {
+    const detail = error?.response?.data?.detail;
     const message =
+      (typeof detail === "string" ? detail : null) ??
       error?.response?.data?.message ??
       error?.message ??
       "Something went wrong. Please try again.";
