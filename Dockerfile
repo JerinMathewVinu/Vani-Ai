@@ -19,17 +19,15 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy the server package into /app/server/ so Python sees `server` as a package
-COPY server/ /app/server/
+# Copy the server files flat into /app
+COPY server/ /app/
 
-# PYTHONPATH=/app lets Python find the `server` package at /app/server/
 ENV PORT=4000 \
     PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app
+    PYTHONDONTWRITEBYTECODE=1
 
 USER appuser
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "uvicorn server.main:app --host 0.0.0.0 --port ${PORT} --workers 1"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1"]
