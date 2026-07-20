@@ -1,0 +1,82 @@
+version: '3.8'
+
+# Production Docker Stack for Vaani AI
+# Run with: docker compose -f docker-compose.prod.yml up --build -d
+
+services:
+  # ----------------------------------------------------
+  # FastAPI Backend Service (STT + Phoneme + APIs)
+  # ----------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vaani-backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - JWT_SECRET=${JWT_SECRET:-production-secret-change-me-please-32-chars}
+      # Options for LLM integration:
+      # Option A: Local Ollama container in same stack
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=mistral
+      # Option B: Cloud LLM API (Groq / OpenAI / Hugging Face)
+      # - GROQ_API_KEY=${GROQ_API_KEY}
+      # - OLLAMA_URL=https://api.groq.com/openai/v1
+      # - OLLAMA_MODEL=llama-3.1-8b-instant
+    volumes:
+      - vaani-backend-data:/app/server
+      - vaani-huggingface-cache:/home/appuser/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4000/api/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+  # ----------------------------------------------------
+  # Next.js Frontend Service
+  # ----------------------------------------------------
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000}
+        - NEXT_PUBLIC_DEMO_MODE=false
+    container_name: vaani-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # ----------------------------------------------------
+  # Optional: Ollama LLM Service (Requires ~8GB RAM/VRAM)
+  # ----------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vaani-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Uncomment if using CPU only or GPU fallback
+
+volumes:
+  vaani-backend-data:
+  vaani-huggingface-cache:
+  ollama-data:

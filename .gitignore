@@ -1,0 +1,17 @@
+node_modules/
+.next/
+client/.next/
+dist/
+build/
+.env
+.env.*
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+server/session_store.json
+server/conviai.db
+*.db
+*.pack
+.venv/
