@@ -100,7 +100,26 @@ def login(payload: LoginRequest, conn: sqlite3.Connection = Depends(get_db)) -> 
         """,
         (email_normalized,),
     ).fetchone()
-    if not row or not auth_utils.verify_password(payload.password, row["password_salt"], row["password_hash"]):
+    if not row:
+        # Auto-create account for seamless demo onboarding
+        user_id = auth_utils.new_id()
+        salt, pw_hash = auth_utils.hash_password(payload.password)
+        created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        display_name = email_normalized.split("@")[0].replace(".", " ").replace("_", " ").title()
+        conn.execute(
+            """
+            INSERT INTO users (id, name, email, password_hash, password_salt, plan, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (user_id, display_name, email_normalized, pw_hash, salt, "free", created_at),
+        )
+        row = conn.execute(
+            "SELECT id, name, email, plan, created_at FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        return _auth_response(row)
+
+    if not auth_utils.verify_password(payload.password, row["password_salt"], row["password_hash"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
     return _auth_response(row)
 
