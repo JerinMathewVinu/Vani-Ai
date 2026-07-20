@@ -21,15 +21,13 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy the application source.
-COPY server/ /app/
+# Copy the application source into /app/server and set PYTHONPATH.
+COPY server/ /app/server/
 
-# Hugging Face Spaces expects port 7860 by default. Render / Fly / generic
-# Docker hosts usually expect 8080 or PORT. We listen on 0.0.0.0:$PORT
-# so the platform can decide. Default to 4000 for local dev.
 ENV PORT=4000 \
     PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
 
 USER appuser
 
