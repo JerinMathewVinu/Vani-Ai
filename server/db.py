@@ -9,14 +9,20 @@ import os
 import sqlite3
 from typing import Iterator
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "conviai.db")
+DB_PATH = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "conviai.db"))
 
 
 def _connect() -> sqlite3.Connection:
+    parent_dir = os.path.dirname(os.path.abspath(DB_PATH))
+    if parent_dir:
+        os.makedirs(parent_dir, exist_ok=True)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False, isolation_level=None)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA journal_mode = WAL")
+    try:
+        conn.execute("PRAGMA journal_mode = WAL")
+    except Exception:
+        pass
     return conn
 
 

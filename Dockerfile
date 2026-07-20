@@ -19,8 +19,9 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy the server files flat into /app
+# Copy the server files flat into /app and set permissions
 COPY server/ /app/
+RUN chown -R appuser:appuser /app
 
 ENV PORT=4000 \
     PYTHONUNBUFFERED=1 \
