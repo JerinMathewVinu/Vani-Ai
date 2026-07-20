@@ -34,15 +34,46 @@ def _offline_improve_text(prompt: str) -> str:
     if "Format the output strictly as a JSON object" in prompt:
         return '{"feedback": "Great effort! Your sentence structure and confidence are strong. Keep practicing to expand your vocabulary.", "grammar_score": 85, "clarity_score": 82, "confidence_score": 88}'
 
-    import random
-    responses = [
-        "That's a fantastic thought! How do you usually approach that when speaking with friends or colleagues?",
-        "I really like your perspective on this! What inspired you to share that point of view?",
-        "That makes a lot of sense! Could you describe a specific experience or example that shaped your thoughts on this?",
-        "Great point! If you had to explain this topic to someone new in English, what key message would you emphasize?",
-        "Very interesting point! What do you think is the biggest challenge or benefit when dealing with this?"
-    ]
-    return random.choice(responses)
+    user_line = ""
+    lines = [line.strip() for line in prompt.split('\n') if line.strip()]
+    for line in reversed(lines):
+        if line.startswith("User:") or line.startswith("Original:"):
+            user_line = line.split(":", 1)[1].strip()
+            break
+
+    lower = user_line.lower()
+
+    if not user_line or lower in ["hi", "hello", "hey", "namaste", "good morning", "good evening"]:
+        return "Hello! I'm Vani, your AI English voice coach. How are you doing today, and what would you like to talk about?"
+
+    # Name / Introduction / Clarification intent
+    if any(k in lower for k in ["my name", "i am ", "name is", "tell my name", "told my name", "just tell"]):
+        name_match = re.search(r'(?:name is|i am|call me)\s+([A-Za-z]+)', lower)
+        name_str = name_match.group(1).title() if name_match else ""
+        if name_str and name_str.lower() not in ["general", "user", "a", "the", "me", "my"]:
+            return f"Nice to meet you, {name_str}! It's great to practice English with you today. What topic would you like to discuss—travel, tech, movies, or career?"
+        return "Nice to meet you! It's great to practice English with you today. What topic would you like to discuss—travel, tech, movies, or career?"
+
+    # Subject Topics
+    if any(k in lower for k in ["travel", "trip", "visit", "country", "flight", "vacation", "beach", "city"]):
+        return "Travel is such an exciting topic! What's one dream destination you'd love to visit, and what would you pack?"
+
+    if any(k in lower for k in ["food", "cook", "eat", "dish", "restaurant", "lunch", "dinner"]):
+        return "Food is a wonderful subject to discuss! What's your favorite dish or comfort food to enjoy?"
+
+    if any(k in lower for k in ["tech", "technology", "phone", "app", "ai", "computer", "laptop"]):
+        return "Technology is evolving so fast! What's one app or gadget you rely on every single day?"
+
+    if any(k in lower for k in ["work", "job", "career", "office", "interview", "study", "college"]):
+        return "Career development is so essential! What is your main professional or study goal right now?"
+
+    # Keyword extraction fallback
+    words = [w for w in re.findall(r'\b[a-z]{3,}\b', lower) if w not in ["the", "and", "that", "this", "with", "for", "about", "just", "have", "from", "tell", "said", "what", "like"]]
+    if words:
+        keyword = words[-1]
+        return f"That's very interesting! Tell me more about your thoughts regarding {keyword} in English."
+
+    return "That's a great point! Could you share a bit more detail about that so we can keep practicing your spoken English?"
 
 
 def _parse_llm_response(data):
